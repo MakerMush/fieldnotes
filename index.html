@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+  <meta name="theme-color" content="#1a1a1a"/>
+  <title>FIELDWORK</title>
+  <link rel="manifest" href="manifest.json"/>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
+
+    :root {
+      --bg: #1a1a1a;
+      --surface: #222222;
+      --surface2: #2a2a2a;
+      --border: #333333;
+      --border-bright: #555555;
+      --text: #e8e4dc;
+      --text-dim: #888888;
+      --text-dimmer: #555555;
+      --accent: #e8e4dc;
+      --danger: #cc4444;
+      --success: #669966;
+      --font: 'Share Tech Mono', 'Courier New', monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font);
+      font-size: 13px;
+      min-height: 100vh;
+      min-height: -webkit-fill-available;
+      overflow-x: hidden;
+    }
+
+    /* ── Layout ── */
+    .app { max-width: 480px; margin: 0 auto; min-height: 100vh; display: flex; flex-direction: column; }
+
+    /* ── Header ── */
+    .header {
+      padding: 16px 20px 12px;
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+      position: sticky; top: 0; background: var(--bg); z-index: 100;
+    }
+    .header-left { display: flex; align-items: center; gap: 10px; }
+    .hex-mark {
+      width: 18px; height: 18px; flex-shrink: 0;
+    }
+    .header h1 {
+      font-size: 11px; letter-spacing: 0.3em; color: var(--text);
+      font-weight: normal;
+    }
+    .header-pg { font-size: 10px; color: var(--text-dimmer); letter-spacing: 0.1em; }
+
+    /* ── Nav ── */
+    .nav {
+      display: flex; border-bottom: 1px solid var(--border);
+      background: var(--bg); position: sticky; top: 57px; z-index: 99;
+    }
+    .nav-btn {
+      flex: 1; padding: 10px 4px; background: none; border: none;
+      color: var(--text-dimmer); font-family: var(--font); font-size: 9px;
+      letter-spacing: 0.2em; cursor: pointer; border-bottom: 2px solid transparent;
+      transition: all 0.15s;
+    }
+    .nav-btn.active { color: var(--text); border-bottom-color: var(--text); }
+
+    /* ── Views ── */
+    .view { display: none; flex: 1; padding: 20px; flex-direction: column; gap: 20px; }
+    .view.active { display: flex; }
+
+    /* ── Section headers ── */
+    .section-head {
+      display: flex; align-items: center; gap: 8px;
+      margin-bottom: 10px;
+    }
+    .section-head span {
+      font-size: 9px; letter-spacing: 0.25em; color: var(--text-dim);
+      text-transform: uppercase;
+    }
+    .section-head::after {
+      content: ''; flex: 1; height: 1px; background: var(--border);
+    }
+
+    /* ── Corner bracket box ── */
+    .bracket-box {
+      position: relative; padding: 14px;
+      background: var(--surface);
+    }
+    .bracket-box::before, .bracket-box::after,
+    .bracket-box .bc-br, .bracket-box .bc-bl {
+      content: ''; position: absolute; width: 10px; height: 10px;
+    }
+    .bracket-box::before {
+      top: 0; left: 0;
+      border-top: 1.5px solid var(--border-bright);
+      border-left: 1.5px solid var(--border-bright);
+    }
+    .bracket-box::after {
+      top: 0; right: 0;
+      border-top: 1.5px solid var(--border-bright);
+      border-right: 1.5px solid var(--border-bright);
+    }
+    .bracket-box .bc-br {
+      bottom: 0; right: 0;
+      border-bottom: 1.5px solid var(--border-bright);
+      border-right: 1.5px solid var(--border-bright);
+    }
+    .bracket-box .bc-bl {
+      bottom: 0; left: 0;
+      border-bottom: 1.5px solid var(--border-bright);
+      border-left: 1.5px solid var(--border-bright);
+    }
+
+    /* ── Last time banner ── */
+    .last-time {
+      background: var(--surface);
+      border-left: 2px solid var(--border-bright);
+      padding: 10px 14px;
+      display: none;
+    }
+    .last-time.visible { display: block; }
+    .last-time-label {
+      font-size: 8px; letter-spacing: 0.25em; color: var(--text-dimmer);
+      margin-bottom: 6px;
+    }
+    .last-time-text { font-size: 12px; color: var(--text-dim); line-height: 1.5; }
+    .last-time-from { font-size: 8px; color: var(--text-dimmer); margin-top: 6px; }
+
+    /* ── Form fields ── */
+    .field { display: flex; flex-direction: column; gap: 6px; }
+    .field-label {
+      font-size: 9px; letter-spacing: 0.2em; color: var(--text-dim);
+    }
+
+    .seg-control {
+      display: flex; gap: 2px;
+    }
+    .seg-btn {
+      flex: 1; padding: 8px 4px; background: var(--surface2);
+      border: 1px solid var(--border); color: var(--text-dimmer);
+      font-family: var(--font); font-size: 10px; letter-spacing: 0.1em;
+      cursor: pointer; transition: all 0.15s; text-align: center;
+    }
+    .seg-btn.active {
+      background: var(--text); color: var(--bg);
+      border-color: var(--text);
+    }
+
+    textarea, input[type="text"] {
+      background: var(--surface2); border: 1px solid var(--border);
+      color: var(--text); font-family: var(--font); font-size: 13px;
+      padding: 10px 12px; width: 100%; resize: none; outline: none;
+      transition: border-color 0.15s; line-height: 1.5;
+      -webkit-appearance: none; border-radius: 0;
+    }
+    textarea:focus, input[type="text"]:focus {
+      border-color: var(--border-bright);
+    }
+    textarea::placeholder, input::placeholder { color: var(--text-dimmer); }
+
+    /* ── Student callout builder ── */
+    .student-entries { display: flex; flex-direction: column; gap: 8px; margin-bottom: 8px; }
+    .student-entry {
+      background: var(--surface2); border: 1px solid var(--border);
+      padding: 10px 12px; display: flex; flex-direction: column; gap: 6px;
+    }
+    .student-entry-top { display: flex; gap: 8px; align-items: center; }
+    .student-name-input {
+      flex: 1; background: none; border: none; border-bottom: 1px solid var(--border);
+      color: var(--text); font-family: var(--font); font-size: 12px;
+      padding: 2px 0; outline: none;
+    }
+    .student-name-input:focus { border-bottom-color: var(--border-bright); }
+    .student-remove {
+      background: none; border: none; color: var(--text-dimmer);
+      font-family: var(--font); font-size: 16px; cursor: pointer; padding: 0 4px;
+      line-height: 1;
+    }
+    .student-note-input {
+      background: none; border: none; border-bottom: 1px solid var(--border);
+      color: var(--text-dim); font-family: var(--font); font-size: 11px;
+      padding: 2px 0; outline: none; width: 100%;
+    }
+    .student-note-input:focus { border-bottom-color: var(--border-bright); }
+    .student-note-input::placeholder { color: var(--text-dimmer); }
+
+    /* Autocomplete */
+    .autocomplete-wrap { position: relative; }
+    .autocomplete-list {
+      position: absolute; top: 100%; left: 0; right: 0; z-index: 200;
+      background: var(--surface2); border: 1px solid var(--border-bright);
+      max-height: 160px; overflow-y: auto; display: none;
+    }
+    .autocomplete-list.open { display: block; }
+    .autocomplete-item {
+      padding: 8px 12px; cursor: pointer; font-size: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+    .autocomplete-item:hover, .autocomplete-item.highlighted {
+      background: var(--border);
+    }
+
+    .add-student-btn {
+      background: none; border: 1px dashed var(--border);
+      color: var(--text-dimmer); font-family: var(--font); font-size: 10px;
+      letter-spacing: 0.2em; padding: 8px; cursor: pointer; width: 100%;
+      transition: all 0.15s;
+    }
+    .add-student-btn:hover { border-color: var(--border-bright); color: var(--text-dim); }
+
+    /* ── Submit ── */
+    .submit-btn {
+      background: var(--text); color: var(--bg);
+      border: none; font-family: var(--font); font-size: 11px;
+      letter-spacing: 0.3em; padding: 14px; cursor: pointer;
+      width: 100%; transition: opacity 0.15s;
+      display: flex; align-items: center; justify-content: center; gap: 10px;
+    }
+    .submit-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .submit-btn:active { opacity: 0.8; }
+
+    /* ── Toast ── */
+    .toast {
+      position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+      background: var(--surface2); border: 1px solid var(--border-bright);
+      color: var(--text); font-size: 10px; letter-spacing: 0.2em;
+      padding: 10px 20px; z-index: 999; opacity: 0;
+      transition: opacity 0.2s; pointer-events: none; white-space: nowrap;
+    }
+    .toast.show { opacity: 1; }
+    .toast.error { border-color: var(--danger); color: var(--danger); }
+
+    /* ── Log view ── */
+    .log-entry {
+      border-left: 2px solid var(--border);
+      padding: 10px 14px;
+      display: flex; flex-direction: column; gap: 4px;
+    }
+    .log-entry-meta {
+      font-size: 9px; color: var(--text-dimmer); letter-spacing: 0.15em;
+      display: flex; gap: 12px;
+    }
+    .log-entry-did { font-size: 12px; color: var(--text-dim); line-height: 1.4; }
+    .log-entry-students { font-size: 11px; color: var(--text-dimmer); font-style: italic; }
+    .log-entry-remember {
+      font-size: 11px; color: var(--text-dim);
+      border-top: 1px solid var(--border); margin-top: 4px; padding-top: 6px;
+    }
+    .log-entry-remember::before {
+      content: '→ '; color: var(--text-dimmer);
+    }
+    .empty-state {
+      text-align: center; color: var(--text-dimmer);
+      font-size: 10px; letter-spacing: 0.2em; padding: 40px 0;
+    }
+
+    /* ── Roster view ── */
+    .roster-list { display: flex; flex-direction: column; gap: 4px; }
+    .roster-item {
+      padding: 8px 12px; background: var(--surface2);
+      border: 1px solid var(--border); font-size: 12px;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .roster-delete {
+      background: none; border: none; color: var(--text-dimmer);
+      font-size: 14px; cursor: pointer; padding: 0 4px;
+    }
+    .roster-add-wrap { display: flex; gap: 8px; }
+    .roster-add-wrap input { flex: 1; }
+    .roster-add-btn {
+      background: var(--surface2); border: 1px solid var(--border);
+      color: var(--text-dim); font-family: var(--font); font-size: 18px;
+      padding: 0 14px; cursor: pointer;
+    }
+    .roster-sync-btn {
+      background: none; border: 1px solid var(--border);
+      color: var(--text-dimmer); font-family: var(--font); font-size: 9px;
+      letter-spacing: 0.2em; padding: 8px; cursor: pointer; width: 100%;
+    }
+
+    /* ── Scrollbar ── */
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: var(--border); }
+  </style>
+</head>
+<body>
+<div class="app">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="header-left">
+      <svg class="hex-mark" viewBox="0 0 18 18">
+        <polygon points="9,1 16,5 16,13 9,17 2,13 2,5"
+          fill="none" stroke="#e8e4dc" stroke-width="1.2"/>
+      </svg>
+      <h1>FIELDWORK</h1>
+    </div>
+    <span class="header-pg" id="clock"></span>
+  </div>
+
+  <!-- Nav -->
+  <div class="nav">
+    <button class="nav-btn active" data-view="capture">CAPTURE</button>
+    <button class="nav-btn" data-view="log">LOG</button>
+    <button class="nav-btn" data-view="roster">ROSTER</button>
+  </div>
+
+  <!-- ── CAPTURE VIEW ── -->
+  <div class="view active" id="view-capture">
+
+    <!-- Block + Cohort -->
+    <div class="field">
+      <div class="field-label">BLOCK</div>
+      <div class="seg-control" id="block-picker">
+        <button class="seg-btn" data-val="A">A</button>
+        <button class="seg-btn" data-val="B">B</button>
+        <button class="seg-btn" data-val="C">C</button>
+        <button class="seg-btn" data-val="D">D</button>
+        <button class="seg-btn" data-val="E">E</button>
+        <button class="seg-btn" data-val="F">F</button>
+      </div>
+    </div>
+
+    <div class="field">
+      <div class="field-label">COHORT</div>
+      <div class="seg-control" id="cohort-picker">
+        <button class="seg-btn" data-val="CDE1-B">CDE1·B</button>
+        <button class="seg-btn" data-val="CDE1-C">CDE1·C</button>
+        <button class="seg-btn" data-val="DesE">DesE</button>
+      </div>
+    </div>
+
+    <!-- Last time banner -->
+    <div class="last-time" id="last-time-banner">
+      <div class="last-time-label">LAST TIME YOU SAID —</div>
+      <div class="last-time-text" id="last-time-text"></div>
+      <div class="last-time-from" id="last-time-from"></div>
+    </div>
+
+    <!-- What we got done -->
+    <div class="field">
+      <div class="field-label">WHAT WE GOT DONE</div>
+      <textarea id="field-did" rows="3" placeholder="what actually happened today..."></textarea>
+    </div>
+
+    <!-- Students -->
+    <div class="field">
+      <div class="field-label">STUDENT CALLOUTS</div>
+      <div class="student-entries" id="student-entries"></div>
+      <button class="add-student-btn" id="add-student-btn">+ ADD STUDENT</button>
+    </div>
+
+    <!-- Remember next -->
+    <div class="field">
+      <div class="field-label">REMEMBER FOR NEXT TIME</div>
+      <textarea id="field-remember" rows="2" placeholder="what to carry forward..."></textarea>
+    </div>
+
+    <button class="submit-btn" id="submit-btn">
+      <svg width="10" height="10" viewBox="0 0 10 10">
+        <polygon points="5,0 10,5 5,10 5,7 0,7 0,3 5,3" fill="currentColor"/>
+      </svg>
+      SUBMIT
+    </button>
+
+  </div>
+
+  <!-- ── LOG VIEW ── -->
+  <div class="view" id="view-log">
+    <div class="field">
+      <div class="field-label">FILTER BY COHORT</div>
+      <div class="seg-control" id="log-filter">
+        <button class="seg-btn active" data-val="all">ALL</button>
+        <button class="seg-btn" data-val="CDE1-B">CDE1·B</button>
+        <button class="seg-btn" data-val="CDE1-C">CDE1·C</button>
+        <button class="seg-btn" data-val="DesE">DesE</button>
+      </div>
+    </div>
+    <div id="log-entries"></div>
+  </div>
+
+  <!-- ── ROSTER VIEW ── -->
+  <div class="view" id="view-roster">
+    <div class="bracket-box">
+      <div class="bc-br"></div><div class="bc-bl"></div>
+      <div class="section-head"><span>ROSTER</span></div>
+      <div class="roster-list" id="roster-list"></div>
+      <div style="height:12px"></div>
+      <div class="roster-add-wrap">
+        <input type="text" id="roster-input" placeholder="Name (Nickname)"/>
+        <button class="roster-add-btn" id="roster-add-btn">+</button>
+      </div>
+    </div>
+    <button class="roster-sync-btn" id="roster-sync-btn">↓ SYNC FROM SHEET</button>
+    <div style="font-size:9px; color:var(--text-dimmer); letter-spacing:0.1em; line-height:1.6;">
+      Roster is stored locally on this device. Sync pulls from the 'roster' tab in your Sheet.
+    </div>
+  </div>
+
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+const API = 'https://script.google.com/macros/s/AKfycbxJ2OHPI-81UVeL7tFMlQkvn9np2oxlSEh7eYPA9s3XnWuKLPs1dUSI8D4cnqHY3OP8/exec';
+
+// ── State ──────────────────────────────────────────────────────────────────
+let roster = JSON.parse(localStorage.getItem('fw_roster') || '[]');
+let localLog = JSON.parse(localStorage.getItem('fw_log') || '[]');
+let selectedBlock = null;
+let selectedCohort = null;
+
+// ── Clock ──────────────────────────────────────────────────────────────────
+function updateClock() {
+  const now = new Date();
+  document.getElementById('clock').textContent =
+    now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
+}
+updateClock();
+setInterval(updateClock, 10000);
+
+// ── Nav ────────────────────────────────────────────────────────────────────
+document.querySelectorAll('.nav-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('view-' + btn.dataset.view).classList.add('active');
+    if (btn.dataset.view === 'log') renderLog();
+    if (btn.dataset.view === 'roster') renderRoster();
+  });
+});
+
+// ── Segment pickers ────────────────────────────────────────────────────────
+function initSegControl(id, onSelect) {
+  document.getElementById(id).querySelectorAll('.seg-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.getElementById(id).querySelectorAll('.seg-btn')
+        .forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      onSelect(btn.dataset.val);
+    });
+  });
+}
+
+initSegControl('block-picker', val => { selectedBlock = val; });
+initSegControl('cohort-picker', val => {
+  selectedCohort = val;
+  loadLastTime(val);
+});
+initSegControl('log-filter', val => renderLog(val));
+
+// ── Last time ──────────────────────────────────────────────────────────────
+async function loadLastTime(cohort) {
+  const banner = document.getElementById('last-time-banner');
+  const textEl = document.getElementById('last-time-text');
+  const fromEl = document.getElementById('last-time-from');
+
+  // Check local log first (faster)
+  const local = [...localLog].reverse().find(e => e.cohort === cohort && e.remember_next);
+  if (local) {
+    textEl.textContent = local.remember_next;
+    fromEl.textContent = formatDate(local.timestamp);
+    banner.classList.add('visible');
+    return;
+  }
+
+  // Fall back to sheet
+  try {
+    const res = await fetch(`${API}?action=last&cohort=${encodeURIComponent(cohort)}`);
+    const data = await res.json();
+    if (data.remember_next) {
+      textEl.textContent = data.remember_next;
+      fromEl.textContent = data.from ? formatDate(data.from) : '';
+      banner.classList.add('visible');
+    } else {
+      banner.classList.remove('visible');
+    }
+  } catch {
+    banner.classList.remove('visible');
+  }
+}
+
+// ── Student entries ────────────────────────────────────────────────────────
+let studentCount = 0;
+
+function addStudentEntry(name = '', note = '') {
+  const id = ++studentCount;
+  const wrap = document.createElement('div');
+  wrap.className = 'student-entry';
+  wrap.dataset.id = id;
+  wrap.innerHTML = `
+    <div class="student-entry-top">
+      <div class="autocomplete-wrap" style="flex:1">
+        <input class="student-name-input" placeholder="name" value="${name}"
+          autocomplete="off" data-student-id="${id}"/>
+        <div class="autocomplete-list" id="ac-${id}"></div>
+      </div>
+      <button class="student-remove" data-remove="${id}">×</button>
+    </div>
+    <input class="student-note-input" placeholder="note..." value="${note}"/>
+  `;
+  document.getElementById('student-entries').appendChild(wrap);
+
+  // Autocomplete
+  const nameInput = wrap.querySelector('.student-name-input');
+  const acList = wrap.querySelector('.autocomplete-list');
+
+  nameInput.addEventListener('input', () => {
+    const q = nameInput.value.toLowerCase();
+    if (!q) { acList.classList.remove('open'); return; }
+    const matches = roster.filter(n => n.toLowerCase().includes(q));
+    if (!matches.length) { acList.classList.remove('open'); return; }
+    acList.innerHTML = matches.slice(0, 6).map(n =>
+      `<div class="autocomplete-item" data-name="${n}">${n}</div>`
+    ).join('');
+    acList.classList.add('open');
+  });
+
+  acList.addEventListener('click', e => {
+    const item = e.target.closest('.autocomplete-item');
+    if (!item) return;
+    nameInput.value = item.dataset.name;
+    acList.classList.remove('open');
+    wrap.querySelector('.student-note-input').focus();
+  });
+
+  nameInput.addEventListener('blur', () => {
+    setTimeout(() => acList.classList.remove('open'), 150);
+  });
+
+  // Remove
+  wrap.querySelector('.student-remove').addEventListener('click', () => wrap.remove());
+}
+
+document.getElementById('add-student-btn').addEventListener('click', () => addStudentEntry());
+
+// Close autocompletes on outside click
+document.addEventListener('click', e => {
+  if (!e.target.closest('.autocomplete-wrap')) {
+    document.querySelectorAll('.autocomplete-list').forEach(l => l.classList.remove('open'));
+  }
+});
+
+// ── Build student string ───────────────────────────────────────────────────
+function buildStudentString() {
+  const entries = [];
+  document.querySelectorAll('.student-entry').forEach(entry => {
+    const name = entry.querySelector('.student-name-input').value.trim();
+    const note = entry.querySelector('.student-note-input').value.trim();
+    if (name) entries.push(`{${name}${note ? ' - ' + note : ''}}`);
+  });
+  return entries.join(', ');
+}
+
+// ── Submit ─────────────────────────────────────────────────────────────────
+document.getElementById('submit-btn').addEventListener('click', async () => {
+  if (!selectedCohort) { showToast('SELECT A COHORT', true); return; }
+
+  const payload = {
+    block: selectedBlock || '',
+    cohort: selectedCohort,
+    what_we_did: document.getElementById('field-did').value.trim(),
+    students: buildStudentString(),
+    remember_next: document.getElementById('field-remember').value.trim()
+  };
+
+  if (!payload.what_we_did && !payload.students && !payload.remember_next) {
+    showToast('NOTHING TO SUBMIT', true); return;
+  }
+
+  const btn = document.getElementById('submit-btn');
+  btn.disabled = true;
+  btn.textContent = 'SUBMITTING...';
+
+  // Save locally immediately
+  const entry = { ...payload, timestamp: new Date().toISOString() };
+  localLog.push(entry);
+  localStorage.setItem('fw_log', JSON.stringify(localLog));
+
+  // Submit to sheet
+  try {
+    await fetch(API, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+      headers: { 'Content-Type': 'application/json' }
+    });
+    showToast('LOGGED ✓');
+  } catch {
+    showToast('SAVED LOCALLY — SHEET OFFLINE', true);
+  }
+
+  // Reset form
+  document.getElementById('field-did').value = '';
+  document.getElementById('field-remember').value = '';
+  document.getElementById('student-entries').innerHTML = '';
+  studentCount = 0;
+  document.getElementById('last-time-banner').classList.remove('visible');
+
+  // Update last time banner with what was just submitted
+  if (payload.remember_next) {
+    document.getElementById('last-time-text').textContent = payload.remember_next;
+    document.getElementById('last-time-from').textContent = 'just now';
+  }
+
+  btn.disabled = false;
+  btn.innerHTML = `<svg width="10" height="10" viewBox="0 0 10 10">
+    <polygon points="5,0 10,5 5,10 5,7 0,7 0,3 5,3" fill="currentColor"/>
+  </svg> SUBMIT`;
+});
+
+// ── Log ────────────────────────────────────────────────────────────────────
+function renderLog(filter = 'all') {
+  const el = document.getElementById('log-entries');
+  const entries = [...localLog]
+    .reverse()
+    .filter(e => filter === 'all' || e.cohort === filter);
+
+  if (!entries.length) {
+    el.innerHTML = '<div class="empty-state">NO ENTRIES YET</div>';
+    return;
+  }
+
+  el.innerHTML = entries.map(e => `
+    <div class="log-entry">
+      <div class="log-entry-meta">
+        <span>${e.cohort}</span>
+        <span>${e.block ? 'BLK·' + e.block : ''}</span>
+        <span>${formatDate(e.timestamp)}</span>
+      </div>
+      ${e.what_we_did ? `<div class="log-entry-did">${e.what_we_did}</div>` : ''}
+      ${e.students ? `<div class="log-entry-students">${e.students}</div>` : ''}
+      ${e.remember_next ? `<div class="log-entry-remember">${e.remember_next}</div>` : ''}
+    </div>
+  `).join('');
+}
+
+// ── Roster ─────────────────────────────────────────────────────────────────
+function renderRoster() {
+  const el = document.getElementById('roster-list');
+  if (!roster.length) {
+    el.innerHTML = '<div class="empty-state" style="padding:20px 0">NO NAMES YET</div>';
+    return;
+  }
+  el.innerHTML = roster.map((name, i) => `
+    <div class="roster-item">
+      <span>${name}</span>
+      <button class="roster-delete" data-i="${i}">×</button>
+    </div>
+  `).join('');
+  el.querySelectorAll('.roster-delete').forEach(btn => {
+    btn.addEventListener('click', () => {
+      roster.splice(parseInt(btn.dataset.i), 1);
+      localStorage.setItem('fw_roster', JSON.stringify(roster));
+      renderRoster();
+    });
+  });
+}
+
+document.getElementById('roster-add-btn').addEventListener('click', addRosterName);
+document.getElementById('roster-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') addRosterName();
+});
+
+function addRosterName() {
+  const input = document.getElementById('roster-input');
+  const name = input.value.trim();
+  if (!name) return;
+  if (!roster.includes(name)) {
+    roster.push(name);
+    roster.sort();
+    localStorage.setItem('fw_roster', JSON.stringify(roster));
+  }
+  input.value = '';
+  renderRoster();
+}
+
+document.getElementById('roster-sync-btn').addEventListener('click', async () => {
+  try {
+    const res = await fetch(`${API}?action=roster`);
+    const data = await res.json();
+    if (data.roster && data.roster.length) {
+      roster = [...new Set([...roster, ...data.roster])].sort();
+      localStorage.setItem('fw_roster', JSON.stringify(roster));
+      renderRoster();
+      showToast(`SYNCED ${data.roster.length} NAMES`);
+    } else {
+      showToast('SHEET ROSTER EMPTY', true);
+    }
+  } catch {
+    showToast('SYNC FAILED', true);
+  }
+});
+
+// ── Toast ──────────────────────────────────────────────────────────────────
+function showToast(msg, error = false) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast' + (error ? ' error' : '') + ' show';
+  setTimeout(() => t.className = 'toast', 2500);
+}
+
+// ── Helpers ────────────────────────────────────────────────────────────────
+function formatDate(iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ' · ' +
+    d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
+}
+</script>
+</body>
+</html>
