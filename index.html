@@ -552,18 +552,15 @@ function buildStudentString() {
 // ── Submit ─────────────────────────────────────────────────────────────────
 document.getElementById('submit-btn').addEventListener('click', async () => {
   if (!selectedCohort) { showToast('SELECT A COHORT', true); return; }
-
   const payload = {
     cohort: selectedCohort,
     what_we_did: document.getElementById('field-did').value.trim(),
     students: buildStudentString(),
     remember_next: document.getElementById('field-remember').value.trim()
   };
-
   if (!payload.what_we_did && !payload.students && !payload.remember_next) {
     showToast('NOTHING TO SUBMIT', true); return;
   }
-
   const btn = document.getElementById('submit-btn');
   btn.disabled = true;
   btn.textContent = 'SUBMITTING...';
@@ -573,17 +570,18 @@ document.getElementById('submit-btn').addEventListener('click', async () => {
   localLog.push(entry);
   localStorage.setItem('fw_log', JSON.stringify(localLog));
 
-  // Submit to sheet
-  try {
-    await fetch(API, {
-      method: 'POST',
-      body: JSON.stringify(payload),
-      headers: { 'Content-Type': 'application/json' }
-    });
-    showToast('LOGGED ✓');
-  } catch {
-    showToast('SAVED LOCALLY — SHEET OFFLINE', true);
+  // Submit to sheet with retry
+  let submitted = false;
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      await fetch(API, { method: 'POST', body: JSON.stringify(payload) });
+      submitted = true;
+      break;
+    } catch {
+      if (attempt < 2) await new Promise(r => setTimeout(r, 1500));
+    }
   }
+  submitted ? showToast('LOGGED ✓') : showToast('SAVED LOCALLY — SHEET OFFLINE', true);
 
   // Reset form
   document.getElementById('field-did').value = '';
