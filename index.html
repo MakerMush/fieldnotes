@@ -316,18 +316,7 @@
   <!-- ── CAPTURE VIEW ── -->
   <div class="view active" id="view-capture">
 
-    <!-- Block + Cohort -->
-    <div class="field">
-      <div class="field-label">BLOCK</div>
-      <div class="seg-control" id="block-picker">
-        <button class="seg-btn" data-val="A">A</button>
-        <button class="seg-btn" data-val="B">B</button>
-        <button class="seg-btn" data-val="C">C</button>
-        <button class="seg-btn" data-val="D">D</button>
-        <button class="seg-btn" data-val="E">E</button>
-        <button class="seg-btn" data-val="F">F</button>
-      </div>
-    </div>
+    <!-- Cohort -->
 
     <div class="field">
       <div class="field-label">COHORT</div>
@@ -416,7 +405,6 @@ const API = 'https://script.google.com/macros/s/AKfycbxJ2OHPI-81UVeL7tFMlQkvn9np
 // ── State ──────────────────────────────────────────────────────────────────
 let roster = JSON.parse(localStorage.getItem('fw_roster') || '[]');
 let localLog = JSON.parse(localStorage.getItem('fw_log') || '[]');
-let selectedBlock = null;
 let selectedCohort = null;
 
 // ── Clock ──────────────────────────────────────────────────────────────────
@@ -452,7 +440,6 @@ function initSegControl(id, onSelect) {
   });
 }
 
-initSegControl('block-picker', val => { selectedBlock = val; });
 initSegControl('cohort-picker', val => {
   selectedCohort = val;
   loadLastTime(val);
@@ -567,7 +554,6 @@ document.getElementById('submit-btn').addEventListener('click', async () => {
   if (!selectedCohort) { showToast('SELECT A COHORT', true); return; }
 
   const payload = {
-    block: selectedBlock || '',
     cohort: selectedCohort,
     what_we_did: document.getElementById('field-did').value.trim(),
     students: buildStudentString(),
@@ -591,9 +577,10 @@ document.getElementById('submit-btn').addEventListener('click', async () => {
   try {
     await fetch(API, {
       method: 'POST',
-      body: JSON.stringify(payload)
+      body: JSON.stringify(payload),
+      headers: { 'Content-Type': 'application/json' }
     });
-  showToast('LOGGED ✓');
+    showToast('LOGGED ✓');
   } catch {
     showToast('SAVED LOCALLY — SHEET OFFLINE', true);
   }
