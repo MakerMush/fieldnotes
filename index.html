@@ -618,7 +618,6 @@ function renderLog(filter = 'all') {
     <div class="log-entry">
       <div class="log-entry-meta">
         <span>${e.cohort}</span>
-        <span>${e.block ? 'BLK·' + e.block : ''}</span>
         <span>${formatDate(e.timestamp)}</span>
       </div>
       ${e.what_we_did ? `<div class="log-entry-did">${e.what_we_did}</div>` : ''}
