@@ -591,10 +591,9 @@ document.getElementById('submit-btn').addEventListener('click', async () => {
   try {
     await fetch(API, {
       method: 'POST',
-      body: JSON.stringify(payload),
-      headers: { 'Content-Type': 'application/json' }
+      body: JSON.stringify(payload)
     });
-    showToast('LOGGED ✓');
+  showToast('LOGGED ✓');
   } catch {
     showToast('SAVED LOCALLY — SHEET OFFLINE', true);
   }
