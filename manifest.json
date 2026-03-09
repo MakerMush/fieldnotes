@@ -2,7 +2,7 @@
   "name": "Fieldwork",
   "short_name": "FIELDWORK",
   "description": "Block capture for the MiLL",
-  "start_url": "/index.html",
+  "start_url": "/fieldnotes/index.html",
   "display": "standalone",
   "background_color": "#1a1a1a",
   "theme_color": "#1a1a1a",
